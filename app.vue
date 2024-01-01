@@ -1,8 +1,11 @@
 
 <template>
-  <HelloWorld />
+  <NoteMain />
 </template>
 
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+import NoteMain from './components/NoteMain.vue'
 </script>
+
+<style lang="scss">
+</style>
