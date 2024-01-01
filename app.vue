@@ -1,6 +1,8 @@
 
 <template>
-  <NoteMain />
+  <!-- <ClientOnly> -->
+    <NoteMain />
+  <!-- </ClientOnly> -->
 </template>
 
 <script setup>
