@@ -15,7 +15,6 @@
 import Konva from 'konva';
 import { ref, onMounted } from 'vue';
 
-const log = console.log;
 const isNowDrawing = ref(false);
 
 let stage;
@@ -36,7 +35,6 @@ const mousedownHandler = () => {
 };
 
 const mousemoveHandler = () => {
-  console.log(isNowDrawing.value);
   if (!isNowDrawing.value) return false;
   const newWidth = stage.getPointerPosition().x - rect.x();
   const newHeight = stage.getPointerPosition().y - rect.y();
