@@ -1,9 +1,16 @@
 <template>
   <div class="flex overflow-auto">
-    <div class="basis-1/2 h-[90vh] overflow-auto m-12 border rounded shadow-sm">
+    <div
+      class="relative basis-1/2 h-[90vh] overflow-auto m-12 border rounded shadow-sm"
+    >
+      <img
+        class="w-full -z-1"
+        id="note-image"
+        src="https://i.postimg.cc/sgtp3zzV/diagram.png"
+      >
       <div
-        id="diagram"
-        class="h-full overflow-hidden"
+        class="absolute inset-y-0 z-10"
+        id="note-event"
       />
     </div>
     <div class="basis-1/2 h-[90vh] overflow-auto m-12 p-10 border rounded shadow-sm">
@@ -47,11 +54,12 @@ const mouseupHandler = () => {
 };
 
 onMounted(() => {
-  const diagram = document.getElementById('diagram');
+  const noteImage = document.getElementById('note-image');
+  const noteEvent = document.getElementById('note-event');
   stage = new Konva.Stage({
-    height: diagram.clientHeight,
-    width: diagram.clientWidth,
-    container: diagram,
+    height: noteImage.clientHeight,
+    width: noteImage.clientWidth,
+    container: noteEvent,
   });
   layer = new Konva.Layer();
 
