@@ -20,7 +20,7 @@
 
 <script setup>
 import Konva from 'konva';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const isNowDrawing = ref(false);
 
@@ -53,7 +53,13 @@ const mouseupHandler = () => {
   isNowDrawing.value = false;
 };
 
-onMounted(() => {
+// TODO: Need to update the rects positions and ratios
+const updateCanvasWidthHeight = () => {
+  const noteImage = document.getElementById('note-image');
+  stage.width(noteImage.clientWidth).height(noteImage.clientHeight);
+}
+
+const initCanvas = () => {
   const noteImage = document.getElementById('note-image');
   const noteEvent = document.getElementById('note-event');
   stage = new Konva.Stage({
@@ -67,5 +73,14 @@ onMounted(() => {
   stage.on('mousedown', mousedownHandler);
   stage.on('mousemove', mousemoveHandler);
   stage.on('mouseup', mouseupHandler);
+}
+
+onMounted(() => {
+  window.addEventListener('resize', updateCanvasWidthHeight);
+  initCanvas();
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateCanvasWidthHeight);
 })
 </script>
