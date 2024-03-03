@@ -1,19 +1,12 @@
 <template>
   <div class="flex overflow-auto">
     <div
-      class="relative basis-1/2 h-[90vh] overflow-auto m-12 border rounded shadow-sm"
+      class="w-full h-[90vh] overflow-auto m-12 border rounded shadow-sm"
     >
-      <img
-        class="w-full -z-1"
-        id="note-image"
-        src="https://i.postimg.cc/sgtp3zzV/diagram.png"
-      >
       <div
-        class="absolute inset-y-0 z-10"
-        id="note-event"
+        id="canvas-container"
+        class="h-full overflow-hidden"
       />
-    </div>
-    <div class="basis-1/2 h-[90vh] overflow-auto m-12 p-10 border rounded shadow-sm">
     </div>
   </div>
 </template>
@@ -55,17 +48,16 @@ const mouseupHandler = () => {
 
 // TODO: Need to update the rects positions and ratios
 const updateCanvasWidthHeight = () => {
-  const noteImage = document.getElementById('note-image');
-  stage.width(noteImage.clientWidth).height(noteImage.clientHeight);
+  const canvasCont = document.getElementById('canvas-container');
+  stage.width(canvasCont.clientWidth).height(canvasCont.clientHeight);
 }
 
 const initCanvas = () => {
-  const noteImage = document.getElementById('note-image');
-  const noteEvent = document.getElementById('note-event');
+  const canvasCont = document.getElementById('canvas-container');
   stage = new Konva.Stage({
-    height: noteImage.clientHeight,
-    width: noteImage.clientWidth,
-    container: noteEvent,
+    height: canvasCont.clientHeight,
+    width: canvasCont.clientWidth,
+    container: canvasCont,
   });
   layer = new Konva.Layer();
 
@@ -76,8 +68,8 @@ const initCanvas = () => {
 }
 
 onMounted(() => {
-  window.addEventListener('resize', updateCanvasWidthHeight);
   initCanvas();
+  window.addEventListener('resize', updateCanvasWidthHeight);
 })
 
 onBeforeUnmount(() => {
