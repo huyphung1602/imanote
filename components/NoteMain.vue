@@ -3,10 +3,14 @@
     <div class="mt-12 flex justify-center space-x-6">
       <!-- Group Button -->
       <div class="flex items-center justify-center text-center content-baseline">
-        <a class="bg-purple-600 hover:bg-purple-700 text-purple-200 p-2 rounded-l">
+        <a
+          class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1"
+          :class="{ 'bg-gray-200': shouldAddSquare }"
+          @click="toggleAddingSquare()"
+        >
           Add Square
         </a>
-        <a class="bg-purple-600 hover:bg-purple-700 text-purple-200 p-2 rounded-r">
+        <a class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1">
           Grid
         </a>
       </div>
@@ -27,12 +31,19 @@ import Konva from 'konva';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const isNowDrawing = ref(false);
+const shouldAddSquare = ref(false);
+const shapes = ref([]);
 
 let stage;
 let layer;
 let rect = null;
 
+const toggleAddingSquare = () => {
+  shouldAddSquare.value = !shouldAddSquare.value;
+};
+
 const mousedownHandler = () => {
+  if (!shouldAddSquare.value) return;
   isNowDrawing.value = true;
   rect = new Konva.Rect({
     x: stage.getPointerPosition().x,
@@ -43,6 +54,8 @@ const mousedownHandler = () => {
     stroke: 'blue',
   })
   layer.add(rect).batchDraw();
+  shapes.value.push(rect);
+  console.log(shapes.value);
 };
 
 const mousemoveHandler = () => {
