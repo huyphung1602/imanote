@@ -1,7 +1,18 @@
 <template>
-  <div class="flex overflow-auto">
+  <div class="flex flex-col overflow-auto">
+    <div class="mt-12 flex justify-center space-x-6">
+      <!-- Group Button -->
+      <div class="flex items-center justify-center text-center content-baseline">
+        <a class="bg-purple-600 hover:bg-purple-700 text-purple-200 p-2 rounded-l">
+          Add Square
+        </a>
+        <a class="bg-purple-600 hover:bg-purple-700 text-purple-200 p-2 rounded-r">
+          Grid
+        </a>
+      </div>
+    </div>
     <div
-      class="w-full h-[90vh] overflow-auto m-12 border rounded shadow-sm"
+      class="h-[80vh] overflow-auto m-12 border rounded shadow-sm"
     >
       <div
         id="canvas-container"
