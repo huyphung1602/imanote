@@ -26,17 +26,18 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import Konva from 'konva';
+import { Shape } from 'konva/lib/Shape';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
 const isNowDrawing = ref(false);
 const shouldAddSquare = ref(false);
-const shapes = ref([]);
+const shapes = new Map<number, Shape>();
 
-let stage;
-let layer;
-let rect = null;
+let stage: Konva.Stage;
+let layer: Konva.Layer;
+let rect: Konva.Rect;
 
 const toggleAddingSquare = () => {
   shouldAddSquare.value = !shouldAddSquare.value;
@@ -44,24 +45,25 @@ const toggleAddingSquare = () => {
 
 const mousedownHandler = () => {
   if (!shouldAddSquare.value) return;
+
   isNowDrawing.value = true;
   rect = new Konva.Rect({
-    x: stage.getPointerPosition().x,
-    y: stage.getPointerPosition().y,
+    x: stage.getPointerPosition()?.x,
+    y: stage.getPointerPosition()?.y,
     width: 0,
     height: 0,
     fill: 'lightblue',
     stroke: 'blue',
   })
   layer.add(rect).batchDraw();
-  shapes.value.push(rect);
-  console.log(shapes.value);
+  shapes.set(rect._id, rect);
+  console.log(shapes);
 };
 
 const mousemoveHandler = () => {
   if (!isNowDrawing.value) return false;
-  const newWidth = stage.getPointerPosition().x - rect.x();
-  const newHeight = stage.getPointerPosition().y - rect.y();
+  const newWidth = stage.getPointerPosition()!.x - rect.x();
+  const newHeight = stage.getPointerPosition()!.y - rect.y();
   rect.width(newWidth).height(newHeight);
   layer.batchDraw();
 };
@@ -72,12 +74,12 @@ const mouseupHandler = () => {
 
 // TODO: Need to update the rects positions and ratios
 const updateCanvasWidthHeight = () => {
-  const canvasCont = document.getElementById('canvas-container');
+  const canvasCont = document.getElementById('canvas-container')!;
   stage.width(canvasCont.clientWidth).height(canvasCont.clientHeight);
 }
 
 const initCanvas = () => {
-  const canvasCont = document.getElementById('canvas-container');
+  const canvasCont = document.getElementById('canvas-container')! as HTMLDivElement;
   stage = new Konva.Stage({
     height: canvasCont.clientHeight,
     width: canvasCont.clientWidth,
