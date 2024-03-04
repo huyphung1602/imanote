@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col overflow-auto">
-    <div class="mt-12 flex justify-center space-x-6">
+    <div class="mt-4 flex justify-center space-x-6">
       <!-- Group Button -->
       <div class="flex items-center justify-center text-center content-baseline">
         <a
@@ -85,7 +85,7 @@ const initialRectAttrs: RectAttr[] = [
     'fill': 'lightblue',
     'stroke': 'blue'
   }
-] 
+]
 
 // Some shit
 let stage: Konva.Stage;
@@ -95,6 +95,7 @@ let drawingRect: Konva.Rect;
 
 const toggleAddingSquare = () => {
   isAddingRect.value = !isAddingRect.value;
+  stage.setAttr('draggable', !isAddingRect.value);
 };
 
 const mousedownHandler = () => {
@@ -114,8 +115,8 @@ const mousedownHandler = () => {
 
 const mousemoveHandler = () => {
   if (!isAddingRect.value) return;
-
   if (!isNowDrawing.value) return false;
+
   const newWidth = stage.getPointerPosition()!.x - drawingRect.x();
   const newHeight = stage.getPointerPosition()!.y - drawingRect.y();
   drawingRect.width(newWidth).height(newHeight);
