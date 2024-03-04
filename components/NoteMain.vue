@@ -16,12 +16,9 @@
       </div>
     </div>
     <div
+      id="canvas-container"
       class="h-[80vh] overflow-auto m-12 border rounded shadow-sm"
     >
-      <div
-        id="canvas-container"
-        class="h-full overflow-hidden"
-      />
     </div>
   </div>
 </template>
@@ -146,10 +143,31 @@ const updateCurrentRect = (rect: Konva.Rect, rectAttrs: RectAttr[]) => {
 }
 
 const drawRect = (rectAttr: RectAttr) => {
-  drawingRect = new Konva.Rect(rectAttr)
+  drawingRect = new Konva.Rect(
+    {
+      ...rectAttr,
+      draggable: true,
+    }
+  )
+  // write out drag and drop events
+  drawingRect.on('dragstart', () => dragRectStart());
+  drawingRect.on('dragmove', () => dragRectMove());
+  drawingRect.on('dragend', () => dragRectEnd());
   layer.add(drawingRect).batchDraw();
   shapes.value.set(drawingRect._id, drawingRect);
 }
+
+const dragRectStart = () => {
+  console.log('dragstart');
+};
+
+const dragRectMove = () => {
+  console.log('dragmove');
+};
+
+const dragRectEnd = () => {
+  console.log('dragend');
+};
 
 const drawInitialRects = (attrs: RectAttr[]) => {
   forEach(attrs, (attr) => drawRect(attr));
@@ -167,6 +185,7 @@ const initCanvas = () => {
     height: canvasCont.clientHeight,
     width: canvasCont.clientWidth,
     container: canvasCont,
+    draggable: true,
   });
   layer = new Konva.Layer();
 
