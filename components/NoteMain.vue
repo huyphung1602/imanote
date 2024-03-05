@@ -10,7 +10,10 @@
         >
           Draw
         </a>
-        <a class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1">
+        <a
+          class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1"
+          @click="toggleGrid()"
+        >
           Grid
         </a>
       </div>
@@ -29,11 +32,13 @@ import Konva from 'konva';
 import { Shape } from 'konva/lib/Shape';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { type RectAttr } from '@/note_renderer/types';
+import { roundToGrid, createGridImage } from '@/note_renderer/grid';
 import { drawRect } from '@/note_renderer/Rect';
 
 // Define const
 const isAddingRect = ref(false);
 const isNowDrawing = ref(false);
+const enablingGrid = ref(false);
 const shapes = ref(new Map<number, Shape>());
 const currentRects = ref([] as RectAttr[]);
 const initialRectAttrs: RectAttr[] = [
@@ -83,6 +88,10 @@ const initialRectAttrs: RectAttr[] = [
 let stage: Konva.Stage;
 let layer: Konva.Layer;
 let drawingRect: Konva.Rect;
+const grid = new Konva.Group({
+  x: 0,
+  y: 0,
+});
 
 
 const toggleAddingSquare = () => {
@@ -151,6 +160,53 @@ const initRects = (attrs: RectAttr[]) => {
 const updateCanvasWidthHeight = () => {
   const canvasCont = document.getElementById('canvas-container')!;
   stage.width(canvasCont.clientWidth).height(canvasCont.clientHeight);
+}
+
+const addGrid = async (): Promise<void> => {
+  const buffer = 100000;
+  const img = await createGridImage();
+  const rect = new Konva.Shape({
+    id: 'grid-background',
+    x: roundToGrid(stage.x() - buffer),
+    y: roundToGrid(stage.y() - buffer),
+    width: roundToGrid(stage.width() * buffer),
+    height: roundToGrid(stage.height() * buffer),
+    sceneFunc: (ctx) => {
+      const pattern = ctx.createPattern(img, 'repeat');
+      if (pattern) {
+        ctx.fillStyle = pattern;
+        ctx.fillRect(rect.x(), rect.y(), rect.width(), rect.height());
+      }
+    },
+  });
+  grid.add(rect);
+  layer.add(grid);
+  grid.moveToBottom();
+}
+
+const removeGrid = () => {
+  grid.destroyChildren();
+}
+
+const enableGrid = () => {
+  // reset grid background group
+  removeGrid();
+  addGrid();
+}
+
+const disableGrid = () => {
+  // reset grid background group
+  removeGrid();
+}
+
+const toggleGrid = () => {
+  if (enablingGrid.value) {
+    disableGrid()
+    enablingGrid.value = false;
+  } else {
+    enableGrid();
+    enablingGrid.value = true;
+  }
 }
 
 const initCanvas = () => {
