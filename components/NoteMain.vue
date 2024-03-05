@@ -38,7 +38,7 @@ import { drawRect } from '@/note_renderer/Rect';
 
 // Define const
 const diagram = {
-  gridEnabling: false,
+  gridEnabling: true,
   shapes: new Map<number, Shape>(),
 } as Diagram;
 const isAddingRect = ref(false);
@@ -46,46 +46,46 @@ const isNowDrawing = ref(false);
 const currentRects = ref([] as RectAttr[]);
 const initialRectAttrs: RectAttr[] = [
   {
-    'x': 505,
-    'y': 187,
-    'width': 200,
-    'height': 116,
+    'x': 304,
+    'y': 64,
+    'width': 96,
+    'height': 80,
     'fill': 'lightblue',
     'stroke': 'blue'
   },
   {
-    'x': 710,
-    'y': 423,
-    'width': 176,
-    'height': 136,
+    'x': 128,
+    'y': 192,
+    'width': 144,
+    'height': 32,
     'fill': 'lightblue',
     'stroke': 'blue'
   },
   {
-    'x': 556,
-    'y': 653,
-    'width': 84,
-    'height': 127,
+    'x': 288,
+    'y': 240,
+    'width': 128,
+    'height': 192,
     'fill': 'lightblue',
     'stroke': 'blue'
   },
   {
-    'x': 1106,
-    'y': 411,
-    'width': 216,
-    'height': 184,
+    'x': 448,
+    'y': 160,
+    'width': 192,
+    'height': 64,
     'fill': 'lightblue',
     'stroke': 'blue'
   },
   {
-    'x': 295,
-    'y': 462,
-    'width': 185,
-    'height': 63,
+    'x': 784,
+    'y': 160,
+    'width': 208,
+    'height': 48,
     'fill': 'lightblue',
     'stroke': 'blue'
   }
-]
+] 
 
 // Some shit
 let stage: Konva.Stage;
@@ -235,6 +235,7 @@ const initCanvas = () => {
 onMounted(() => {
   initCanvas();
   initRects(initialRectAttrs);
+  if (diagram.gridEnabling) enableGrid();
   window.addEventListener('resize', updateCanvasWidthHeight);
 })
 
