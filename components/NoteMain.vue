@@ -8,7 +8,7 @@
           :class="{ 'bg-gray-200': isAddingRect }"
           @click="toggleAddingSquare()"
         >
-          Add Square
+          Draw
         </a>
         <a class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1">
           Grid
@@ -28,16 +28,8 @@ import { forEach } from 'lodash';
 import Konva from 'konva';
 import { Shape } from 'konva/lib/Shape';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-
-// Define types
-interface RectAttr {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fill: string;
-  stroke: string;
-}
+import { type RectAttr } from '@/note_renderer/types';
+import { drawRect } from '@/note_renderer/Rect';
 
 // Define const
 const isAddingRect = ref(false);
@@ -110,7 +102,10 @@ const mousedownHandler = () => {
     fill: 'lightblue',
     stroke: 'blue',
   }
-  drawRect(rectAttr);
+  drawingRect = drawRect(rectAttr);
+  layer.add(drawingRect)
+  shapes.value.set(drawingRect._id, drawingRect);
+  layer.batchDraw();
 };
 
 const mousemoveHandler = () => {
@@ -143,35 +138,13 @@ const updateCurrentRect = (rect: Konva.Rect, rectAttrs: RectAttr[]) => {
   })
 }
 
-const drawRect = (rectAttr: RectAttr) => {
-  drawingRect = new Konva.Rect(
-    {
-      ...rectAttr,
-      draggable: true,
-    }
-  )
-  // write out drag and drop events
-  drawingRect.on('dragstart', () => dragRectStart());
-  drawingRect.on('dragmove', () => dragRectMove());
-  drawingRect.on('dragend', () => dragRectEnd());
-  layer.add(drawingRect).batchDraw();
-  shapes.value.set(drawingRect._id, drawingRect);
-}
-
-const dragRectStart = () => {
-  console.log('dragstart');
-};
-
-const dragRectMove = () => {
-  console.log('dragmove');
-};
-
-const dragRectEnd = () => {
-  console.log('dragend');
-};
-
-const drawInitialRects = (attrs: RectAttr[]) => {
-  forEach(attrs, (attr) => drawRect(attr));
+const initRects = (attrs: RectAttr[]) => {
+  forEach(attrs, (attr) => {
+    const rect = drawRect(attr);
+    layer.add(rect);
+    shapes.value.set(rect._id, rect);
+  });
+  layer.batchDraw;
 }
 
 // TODO: Need to update the rects positions and ratios
@@ -198,7 +171,7 @@ const initCanvas = () => {
 
 onMounted(() => {
   initCanvas();
-  drawInitialRects(initialRectAttrs);
+  initRects(initialRectAttrs);
   window.addEventListener('resize', updateCanvasWidthHeight);
 })
 
