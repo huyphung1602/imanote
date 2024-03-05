@@ -1,4 +1,4 @@
-import { forEach, map, reduce, sortBy } from 'lodash';
+import { concat, forEach, map, reduce, sortBy } from 'lodash';
 import Konva from 'konva';
 import { SNAP_DISTANCE, ALIGN_LINE_COLOR } from './constants';
 import type { AxisType, Diagram, Position, PositionType, SnapPosition } from './types';
@@ -21,48 +21,41 @@ function calculateSnapRanges(nearestPoint: number) {
   };
 }
 
-const findNearestRange = (value: number, arr: number[]): number[] => {
-  if (arr.length <= 1) return arr;
-  return reduce(arr, (range: number[], n: number): number[] => {
-    if (n >= value && range.length <= 1) {
-      return [...range, n];
+const findNearestPosition = (value: number, arr: number[]): number | null => {
+  if (arr.length === 0) return null;
+  let result = arr[0];
+  let min = Math.abs(value - result);
+  forEach(arr, (n) => {
+    const newMin = Math.abs(value - n);
+    if (newMin < min) {
+      min = newMin;
+      result = n;
     }
-    return range;
-  }, [arr[0]]);
+  }) 
+  return result
 }
 
-function findNearestPosition(value: number, range: number[]) {
-  if (range.length === 0) return null;
-  let min = Math.abs(value - range[0]!);
-  let nearest = range[0];
-  forEach(range, (num) => {
-    const delta = Math.abs(value - num);
-    if (delta < min) {
-      nearest = num;
-      min = delta;
-    }
-  });
-
-  return nearest;
-}
-
-const calculatePositionByType = (value: number, rect: Konva.Rect, positionType: PositionType): number => {
+const calculatePositionByType = (value: number, rect: Konva.Rect, positionType: PositionType, isSnap = false): number => {
   switch (positionType) {
     case 'top':
       return value;
     case 'left':
       return value;
     case 'right':
-      return value - rect.width();
+      return sumIsSnap(value, rect.width(), isSnap);
     case 'bottom':
-      return value - rect.height();
+      return sumIsSnap(value, rect.height(), isSnap);
     case 'middleX':
-      return value - rect.width() / 2;
+      return sumIsSnap(value, rect.width() / 2, isSnap);
     case 'middleY':
-      return value - rect.height() / 2;
+      return sumIsSnap(value, rect.height() / 2, isSnap);
     default:
       return value;
   }
+}
+
+const sumIsSnap = (a: number, b: number, isSnap: boolean) => {
+  return isSnap ? a - b : a + b;
 }
 
 const snapOnAxis = (
@@ -78,11 +71,10 @@ const snapOnAxis = (
   const points = axisType === 'x'
     ? [nearest, y - 3000, nearest, y + 3000]
     : [x - 3000, nearest, x + 3000, nearest];
-  const currentPosition = calculatePositionByType(value, rect, positionType);
-  const snapPosition = calculatePositionByType(nearest, rect, positionType);
+  const snapPosition = calculatePositionByType(nearest, rect, positionType, true);
 
   // Within the snap range, the snapline will be visible and the shape will be snapped into the matched position
-  if (currentPosition < maxSnap && currentPosition > minSnap) {
+  if (value < maxSnap && value > minSnap) {
     const alignLine = renderAlignLine(points);
     diagram.alignLine.add(alignLine);
     rect.position({
@@ -99,32 +91,75 @@ export const snapShape = (rect: Konva.Rect, diagram: Diagram) => {
   if (!diagram.sortedSnapPositions) return;
   diagram.alignLine.destroyChildren();
 
-  const { x, y } = rect.position();
   const xPositions = diagram.sortedSnapPositions.x;
   const yPositions = diagram.sortedSnapPositions.y;
-  const nearestRangeTop = findNearestRange(x, xPositions);
-  const nearestRangeLeft = findNearestRange(y, yPositions);
-  const nearestTop = findNearestPosition(x, nearestRangeTop);
-  const nearestLeft = findNearestPosition(y, nearestRangeLeft);
+  const { x, y } = rect.position();
+
+  const left = calculatePositionByType(x, rect, 'left');
+  const top = calculatePositionByType(y, rect, 'top');
+  const right = calculatePositionByType(x, rect, 'right');
+  const bottom = calculatePositionByType(y, rect, 'bottom');
+  const middleX = calculatePositionByType(x, rect, 'middleX');
+  const middleY = calculatePositionByType(y, rect, 'middleY');
+
+  const nearestLeft = findNearestPosition(left, xPositions);
+  const nearestTop = findNearestPosition(top, yPositions);
+  const nearestRight = findNearestPosition(right, xPositions);
+  const nearestBottom = findNearestPosition(bottom, yPositions);
+  const nearestMiddleX = findNearestPosition(middleX, xPositions);
+  const nearestMiddleY = findNearestPosition(middleY, yPositions);
   
-  if (nearestTop) {
-    snapOnAxis(x, rect, diagram, nearestTop, 'x', 'top');
-  }
   if (nearestLeft) {
-    snapOnAxis(y, rect, diagram, nearestLeft, 'y', 'left');
+    snapOnAxis(left, rect, diagram, nearestLeft, 'x', 'left');
+  }
+  if (nearestTop) {
+    snapOnAxis(top, rect, diagram, nearestTop, 'y', 'top');
+  }
+  console.log(xPositions);
+  console.log(right);
+  console.log(nearestRight);
+  if (nearestRight) {
+    snapOnAxis(right, rect, diagram, nearestRight, 'x', 'right');
+  }
+  if (nearestBottom) {
+    snapOnAxis(bottom, rect, diagram, nearestBottom, 'y', 'bottom');
+  }
+  if (nearestMiddleX) {
+    snapOnAxis(middleX, rect, diagram, nearestMiddleX, 'x', 'middleX');
+  }
+  if (nearestMiddleY) {
+    snapOnAxis(middleY, rect, diagram, nearestMiddleY, 'y', 'middleY');
   }
 
   diagram.alignLine.moveToTop();
 }
 
 export const generateSnapPositions = (diagram: Diagram) => {
-  diagram.snapPositions = map(diagram.shapes, (shape) => {
+  const topLeftPositions = map(diagram.shapes, (shape) => {
     return {
       id: shape._id,
       x: shape.x(),
       y: shape.y(),
     }
-  })
+  });
+
+  const bottomRightPositions = map(diagram.shapes, (shape) => {
+    return {
+      id: shape._id,
+      x: calculatePositionByType(shape.x(), shape, 'right'),
+      y: calculatePositionByType(shape.y(), shape, 'bottom'),
+    }
+  });
+
+  const middlePositions = map(diagram.shapes, (shape) => {
+    return {
+      id: shape._id,
+      x: calculatePositionByType(shape.x(), shape, 'middleX'),
+      y: calculatePositionByType(shape.y(), shape, 'middleY'),
+    }
+  });
+
+  diagram.snapPositions = concat(topLeftPositions, bottomRightPositions, middlePositions);
 }
 
 export const createSnappingSortedPositions = (diagram: Diagram, filteredPositions: SnapPosition[]) => {
