@@ -6,12 +6,13 @@
         <a
           class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1"
           :class="{ 'bg-gray-200': isAddingRect }"
-          @click="toggleAddingSquare()"
+          @click="toggleDrawingRect()"
         >
           Draw
         </a>
         <a
           class="border rounded shadow-sm hover:bg-gray-200 cursor-pointer p-2 m-1"
+          :class="{ 'bg-gray-200': diagram.gridEnabling }"
           @click="toggleGrid()"
         >
           Grid
@@ -27,19 +28,21 @@
 </template>
 
 <script setup lang="ts">
-import { forEach } from 'lodash';
+import { forEach, round } from 'lodash';
 import Konva from 'konva';
 import { Shape } from 'konva/lib/Shape';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { type RectAttr } from '@/note_renderer/types';
-import { roundToGrid, createGridImage } from '@/note_renderer/grid';
+import { type Diagram, type RectAttr } from '@/note_renderer/types';
+import { createGridImage, roundToGrid } from '@/note_renderer/grid';
 import { drawRect } from '@/note_renderer/Rect';
 
 // Define const
+const diagram = {
+  gridEnabling: false,
+  shapes: new Map<number, Shape>(),
+} as Diagram;
 const isAddingRect = ref(false);
 const isNowDrawing = ref(false);
-const enablingGrid = ref(false);
-const shapes = ref(new Map<number, Shape>());
 const currentRects = ref([] as RectAttr[]);
 const initialRectAttrs: RectAttr[] = [
   {
@@ -94,45 +97,9 @@ const grid = new Konva.Group({
 });
 
 
-const toggleAddingSquare = () => {
+const toggleDrawingRect = () => {
+  stage.setAttr('draggable', isAddingRect.value);
   isAddingRect.value = !isAddingRect.value;
-  stage.setAttr('draggable', !isAddingRect.value);
-};
-
-const mousedownHandler = () => {
-  if (!isAddingRect.value) return;
-
-  isNowDrawing.value = true;
-  const rectAttr = {
-    x: stage.getPointerPosition()?.x!,
-    y: stage.getPointerPosition()?.y!,
-    width: 0,
-    height: 0,
-    fill: 'lightblue',
-    stroke: 'blue',
-  }
-  drawingRect = drawRect(rectAttr);
-  layer.add(drawingRect)
-  shapes.value.set(drawingRect._id, drawingRect);
-  layer.batchDraw();
-};
-
-const mousemoveHandler = () => {
-  if (!isAddingRect.value) return;
-  if (!isNowDrawing.value) return false;
-
-  const newWidth = stage.getPointerPosition()!.x - drawingRect.x();
-  const newHeight = stage.getPointerPosition()!.y - drawingRect.y();
-  drawingRect.width(newWidth).height(newHeight);
-  layer.batchDraw();
-};
-
-const mouseupHandler = () => {
-  if (!isAddingRect.value) return;
-
-  updateCurrentRect(drawingRect, currentRects.value);
-  console.log(currentRects.value);
-  isNowDrawing.value = false;
 };
 
 const updateCurrentRect = (rect: Konva.Rect, rectAttrs: RectAttr[]) => {
@@ -149,18 +116,13 @@ const updateCurrentRect = (rect: Konva.Rect, rectAttrs: RectAttr[]) => {
 
 const initRects = (attrs: RectAttr[]) => {
   forEach(attrs, (attr) => {
-    const rect = drawRect(attr);
+    const rect = drawRect(attr, diagram);
     layer.add(rect);
-    shapes.value.set(rect._id, rect);
+    diagram.shapes.set(rect._id, rect);
   });
   layer.batchDraw;
 }
 
-// TODO: Need to update the rects positions and ratios
-const updateCanvasWidthHeight = () => {
-  const canvasCont = document.getElementById('canvas-container')!;
-  stage.width(canvasCont.clientWidth).height(canvasCont.clientHeight);
-}
 
 const addGrid = async (): Promise<void> => {
   const buffer = 100000;
@@ -200,13 +162,57 @@ const disableGrid = () => {
 }
 
 const toggleGrid = () => {
-  if (enablingGrid.value) {
+  if (diagram.gridEnabling) {
     disableGrid()
-    enablingGrid.value = false;
+    diagram.gridEnabling = false;
   } else {
     enableGrid();
-    enablingGrid.value = true;
+    diagram.gridEnabling = true;
   }
+}
+
+// Start Block: Init and Update canvas and stage
+const mousedownHandler = () => {
+  if (!isAddingRect.value) return;
+  isNowDrawing.value = true;
+
+  const startX = roundToGrid(stage.getRelativePointerPosition()?.x!, diagram.gridEnabling)
+  const startY = roundToGrid(stage.getRelativePointerPosition()?.y!, diagram.gridEnabling)
+  const rectAttr = {
+    x: startX,
+    y: startY,
+    width: 0,
+    height: 0,
+    fill: 'lightblue',
+    stroke: 'blue',
+  }
+  drawingRect = drawRect(rectAttr, diagram);
+  layer.add(drawingRect)
+  diagram.shapes.set(drawingRect._id, drawingRect);
+  layer.batchDraw();
+};
+
+const mousemoveHandler = () => {
+  if (!isAddingRect.value) return;
+  if (!isNowDrawing.value) return;
+
+  const newWidth = roundToGrid(stage.getRelativePointerPosition()!.x - drawingRect.x(), diagram.gridEnabling);
+  const newHeight = roundToGrid(stage.getRelativePointerPosition()!.y - drawingRect.y(), diagram.gridEnabling);
+  drawingRect.width(newWidth).height(newHeight);
+  layer.batchDraw();
+};
+
+const mouseupHandler = () => {
+  if (!isAddingRect.value) return;
+
+  updateCurrentRect(drawingRect, currentRects.value);
+  console.log(currentRects.value);
+  isNowDrawing.value = false;
+};
+
+const updateCanvasWidthHeight = () => {
+  const canvasCont = document.getElementById('canvas-container')!;
+  stage.width(canvasCont.clientWidth).height(canvasCont.clientHeight);
 }
 
 const initCanvas = () => {
@@ -224,6 +230,7 @@ const initCanvas = () => {
   stage.on('mousemove', mousemoveHandler);
   stage.on('mouseup', mouseupHandler);
 }
+// End Block: Init and Update canvas and stage
 
 onMounted(() => {
   initCanvas();

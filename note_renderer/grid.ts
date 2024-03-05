@@ -1,6 +1,6 @@
 import { GRID_DOT_COLOR, GRID_SIZE } from './constants';
 
-export const roundToGrid = (num: number): number => Math.round(num / GRID_SIZE) * GRID_SIZE;
+export const roundToGrid = (num: number, shouldRound = true) => shouldRound ? Math.round(num / GRID_SIZE) * GRID_SIZE : num;
 export const nearestInsideRoundPoint = (position: number): number => {
   const tmpRoundPoint = roundToGrid(position);
   return tmpRoundPoint < position ? tmpRoundPoint + GRID_SIZE : tmpRoundPoint;
