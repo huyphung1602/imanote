@@ -1,8 +1,7 @@
-import { concat, forEach, map, reduce, sortBy } from 'lodash';
+import { concat, forEach, map, sortBy } from 'lodash';
 import Konva from 'konva';
 import { SNAP_DISTANCE, ALIGN_LINE_COLOR } from './constants';
-import type { AxisType, Diagram, Position, PositionType, SnapPosition } from './types';
-import { roundToGrid } from './grid';
+import type { AxisType, Diagram, PositionType, SnapPosition } from './types';
 
 const renderAlignLine = (points: number[]) => {
   return new Konva.Line({
