@@ -114,9 +114,6 @@ export const snapShape = (rect: Konva.Rect, diagram: Diagram) => {
   if (nearestTop) {
     snapOnAxis(top, rect, diagram, nearestTop, 'y', 'top');
   }
-  console.log(xPositions);
-  console.log(right);
-  console.log(nearestRight);
   if (nearestRight) {
     snapOnAxis(right, rect, diagram, nearestRight, 'x', 'right');
   }

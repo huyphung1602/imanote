@@ -193,6 +193,8 @@ const mouseupHandler = () => {
   if (!isAddingRect.value) return;
   printCurrentRectAttrs();
   isNowDrawing.value = false;
+  isAddingRect.value = false;
+  stage.setAttr('draggable', true);
 };
 
 const printCurrentRectAttrs = () => {
@@ -241,7 +243,7 @@ const initRects = (attrs: RectAttr[]) => {
     diagram.shapes.push(rect);
   });
   generateSnapPositions(diagram as Diagram);
-  layer.batchDraw;
+  layer.batchDraw();
 }
 
 onMounted(() => {
