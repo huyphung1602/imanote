@@ -30,11 +30,14 @@
 <script setup lang="ts">
 import { forEach, map } from 'lodash';
 import Konva from 'konva';
+import { stressTest } from '@/examples/stress_test';
+import { normalCase } from '@/examples/normal_case';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { type Diagram, type RectAttr, type SnapPosition } from '@/note_renderer/types';
 import { createGridImage, roundToGrid } from '@/note_renderer/grid';
 import { drawRect } from '@/note_renderer/Rect';
 import { generateSnapPositions } from '@/note_renderer/snapToObject';
+import type { KonvaEventObject } from 'konva/lib/Node';
 
 // Define const
 const diagram = reactive({
@@ -48,53 +51,11 @@ const diagram = reactive({
 } as Diagram);
 const isAddingRect = ref(false);
 const isNowDrawing = ref(false);
-const initialRectAttrs: RectAttr[] = [
-  {
-    '_id': 1,
-    'x': 304,
-    'y': 64,
-    'width': 96,
-    'height': 80,
-    'fill': 'lightblue',
-    'stroke': 'blue'
-  },
-  {
-    '_id': 2,
-    'x': 128,
-    'y': 192,
-    'width': 144,
-    'height': 32,
-    'fill': 'lightblue',
-    'stroke': 'blue'
-  },
-  {
-    '_id': 3,
-    'x': 288,
-    'y': 240,
-    'width': 128,
-    'height': 192,
-    'fill': 'lightblue',
-    'stroke': 'blue'
-  },
-  {
-    '_id': 4,
-    'x': 448,
-    'y': 160,
-    'width': 192,
-    'height': 64,
-    'fill': 'lightblue',
-    'stroke': 'blue'
-  },
-  {
-    '_id': 5,
-    'x': 784,
-    'y': 160,
-    'width': 208,
-    'height': 48,
-    'fill': 'lightblue',
-    'stroke': 'blue'
-  }
-]; 
+const examples = {
+  normalCase,
+  stressTest,
+}
+const initialRectAttrs: RectAttr[] = examples['stressTest'];
 
 // Some shit
 let stage: Konva.Stage;
@@ -106,9 +67,10 @@ const grid = new Konva.Group({
 });
 
 
-const toggleDrawingRect = () => {
-  stage.setAttr('draggable', isAddingRect.value);
-  isAddingRect.value = !isAddingRect.value;
+const toggleDrawingRect = (forceValue?: boolean) => {
+  const toggleValue = forceValue ? forceValue : !isAddingRect.value;
+  stage.setAttr('draggable', !toggleValue);
+  isAddingRect.value = toggleValue;
 };
 
 const addGrid = async (): Promise<void> => {
@@ -159,7 +121,8 @@ const toggleGrid = () => {
 }
 
 // Start Block: Init and Update canvas and stage
-const mousedownHandler = () => {
+const mousedownHandler = (e: KonvaEventObject<MouseEvent>) => {
+  if (e.evt.ctrlKey) toggleDrawingRect(true);
   if (!isAddingRect.value) return;
   isNowDrawing.value = true;
 
@@ -201,7 +164,7 @@ const printCurrentRectAttrs = () => {
   const rectAttrs = map(diagram.shapes, (shape: Konva.Shape) => {
     const { x, y, width, height, fill, stroke } = shape.getAttrs();
     return {
-      id: shape._id,
+      '_id': shape._id,
       x,
       y,
       width,
@@ -229,7 +192,7 @@ const initCanvas = () => {
   layer = new Konva.Layer();
 
   stage.add(layer);
-  stage.on('mousedown', mousedownHandler);
+  stage.on('mousedown', (e) => mousedownHandler(e));
   stage.on('mousemove', mousemoveHandler);
   stage.on('mouseup', mouseupHandler);
 }
