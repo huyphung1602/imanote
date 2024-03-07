@@ -1,4 +1,4 @@
-import { concat, forEach, map, sortBy } from 'lodash';
+import { concat, forEach, map, slice, sortBy } from 'lodash';
 import Konva from 'konva';
 import { SNAP_DISTANCE, ALIGN_LINE_COLOR } from './constants';
 import type { AxisType, Diagram, PositionType, SnapPosition } from './types';
@@ -21,6 +21,11 @@ function calculateSnapRanges(nearestPoint: number) {
 }
 
 const findNearestPosition = (value: number, arr: number[]): number | null => {
+  return findNearestPositionNormal(value, arr);
+  // return findNearestPositionBinary(value, arr);
+}
+
+const findNearestPositionNormal = (value: number, arr: number[]): number | null => {
   if (arr.length === 0) return null;
   let result = arr[0];
   let min = Math.abs(value - result);
@@ -32,6 +37,40 @@ const findNearestPosition = (value: number, arr: number[]): number | null => {
     }
   }) 
   return result
+}
+
+const findNearestPositionBinary = (searchingValue: number, sortedValues: number[]): number | null => {
+  const { length } = sortedValues;
+
+  if (length <= 2) return pickNearest(sortedValues, searchingValue);
+
+  const midIndex = Math.floor(length / 2);
+  const midValue = sortedValues[midIndex]!;
+
+  if (midValue === searchingValue) return searchingValue;
+
+  if (searchingValue > midValue) {
+    const halfRight = slice(sortedValues, midIndex, length);
+    return findNearestPositionBinary(searchingValue, halfRight);
+  }
+
+  const halfLeft = slice(sortedValues, 0, midIndex);
+  return findNearestPositionBinary(searchingValue, halfLeft);
+}
+
+export function pickNearest(range: number[], value: number) {
+  if (range.length === 0) return null;
+  let min = Math.abs(value - range[0]!);
+  let nearest = range[0];
+  forEach(range, (num) => {
+    const delta = Math.abs(value - num);
+    if (delta < min) {
+      nearest = num;
+      min = delta;
+    }
+  });
+
+  return nearest;
 }
 
 const calculatePositionByType = (value: number, rect: Konva.Rect, positionType: PositionType, isSnap = false): number => {

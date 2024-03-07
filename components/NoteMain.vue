@@ -30,8 +30,9 @@
 <script setup lang="ts">
 import { forEach, map } from 'lodash';
 import Konva from 'konva';
-import { stressTest } from '@/examples/stress_test';
 import { normalCase } from '@/examples/normal_case';
+import { stressTest } from '@/examples/stress_test';
+import { thousand } from '@/examples/thousand';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { type Diagram, type RectAttr, type SnapPosition } from '@/note_renderer/types';
 import { createGridImage, roundToGrid } from '@/note_renderer/grid';
@@ -41,7 +42,7 @@ import type { KonvaEventObject } from 'konva/lib/Node';
 
 // Define const
 const diagram = reactive({
-  gridEnabling: true,
+  gridEnabling: false,
   shapes: [] as Konva.Rect[],
   alignLine: new Konva.Group({
     x: 0,
@@ -51,11 +52,14 @@ const diagram = reactive({
 } as Diagram);
 const isAddingRect = ref(false);
 const isNowDrawing = ref(false);
+const nothing = [] as RectAttr[];
 const examples = {
+  nothing,
   normalCase,
   stressTest,
+  thousand,
 }
-const initialRectAttrs: RectAttr[] = examples['stressTest'];
+const initialRectAttrs: RectAttr[] = examples.thousand;
 
 // Some shit
 let stage: Konva.Stage;
