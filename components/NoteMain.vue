@@ -126,7 +126,7 @@ const toggleGrid = () => {
 
 // Start Block: Init and Update canvas and stage
 const mousedownHandler = (e: KonvaEventObject<MouseEvent>) => {
-  if (e.evt.ctrlKey) toggleDrawingRect(true);
+  if (e.evt.metaKey) toggleDrawingRect(true);
   if (!isAddingRect.value) return;
   isNowDrawing.value = true;
 

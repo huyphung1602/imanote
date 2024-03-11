@@ -25,11 +25,11 @@ const dragRectStart = (diagram: Diagram, rect: Konva.Rect) => {
   rect.moveToTop();
   const filteredPositions = filter(diagram.snapPositions, (p) => p.id !== rect._id);
   createSnappingSortedPositions(diagram, filteredPositions);
-  // console.log('dragstart');
+  console.log('dragstart');
 };
 
 const dragRectMove = (diagram: Diagram, rect: Konva.Rect) => {
-  // console.log('moving');
+  console.log('moving');
   if (diagram.gridEnabling) {
     rect.setAttrs({
       x: roundToGrid(rect.x(), diagram.gridEnabling),
@@ -44,5 +44,5 @@ const dragRectEnd = (diagram: Diagram, rect: Konva.Rect) => {
   diagram.alignLine.destroyChildren();
   generateSnapPositions(diagram);
   // diagram.sortedSnapPositions = undefined;
-  // console.log('dragend');
+  console.log('dragend');
 };

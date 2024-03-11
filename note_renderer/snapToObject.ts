@@ -21,8 +21,8 @@ function calculateSnapRanges(nearestPoint: number) {
 }
 
 const findNearestPosition = (value: number, arr: number[]): number | null => {
-  return findNearestPositionNormal(value, arr);
-  // return findNearestPositionBinary(value, arr);
+  // return findNearestPositionNormal(value, arr);
+  return findNearestPositionBinary(value, arr);
 }
 
 const findNearestPositionNormal = (value: number, arr: number[]): number | null => {
